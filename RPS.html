@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rock Paper Scissors</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(#1f3756, #141539);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    header {
+      margin-top: 30px;
+      width: 90%;
+      max-width: 700px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 15px;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+    }
+
+    header img {
+      width: 80px;
+    }
+
+    header .score-box {
+      background: white;
+      border-radius: 10px;
+      padding: 10px 20px;
+      text-align: center;
+    }
+
+    header .score-box span {
+      display: block;
+      font-size: 12px;
+      color: gray;
+      letter-spacing: 2px;
+    }
+
+    header .score-box h2 {
+      margin: 5px 0 0 0;
+      font-size: 32px;
+      color: #2a45c2;
+    }
+
+    .game-area {
+      margin-top: 50px;
+      position: relative;
+      width: 300px;
+      height: 300px;
+      background: url('images/bg-triangle.svg') no-repeat center;
+      background-size: contain;
+      transition: all 0.5s ease;
+    }
+
+    .choice {
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      background: white;
+      border: 15px solid;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0px 5px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+    }
+
+    .choice:hover {
+      transform: scale(1.1);
+    }
+
+    .choice img {
+      width: 50px;
+      height: 50px;
+    }
+
+    .choice.paper {
+      border-color: #4865f4;
+      top: 0;
+      left: 0;
+    }
+
+    .choice.scissors {
+      border-color: #eca922;
+      top: 0;
+      right: 0;
+    }
+
+    .choice.rock {
+      border-color: #db2e4d;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .result-area {
+      margin-top: 50px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      color: white;
+      animation: fade 0.5s;
+    }
+
+    .result-text {
+      font-size: 24px;
+      margin: 20px 0;
+    }
+
+    .play-again {
+      background: white;
+      color: #1f3756;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .play-again:hover {
+      background: #ddd;
+    }
+
+    .rules-btn {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background: transparent;
+      border: 1px solid white;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      letter-spacing: 2px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .rules-btn:hover {
+      background: white;
+      color: #1f3756;
+    }
+
+    /* Modal */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      position: relative;
+      text-align: center;
+    }
+
+    .modal-content img {
+      width: 300px;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      font-size: 20px;
+      cursor: pointer;
+      color: black;
+    }
+
+    @keyframes fade {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <img src="images/logo.svg" alt="Game Logo">
+    <div class="score-box">
+      <span>SCORE</span>
+      <h2 id="score">0</h2>
+    </div>
+  </header>
+
+  <div class="game-area" id="game-area">
+    <div class="choice paper" onclick="play('paper')">
+      <img src="images/icon-paper.svg" alt="Paper">
+    </div>
+    <div class="choice scissors" onclick="play('scissors')">
+      <img src="images/icon-scissors.svg" alt="Scissors">
+    </div>
+    <div class="choice rock" onclick="play('rock')">
+      <img src="images/icon-rock.svg" alt="Rock">
+    </div>
+  </div>
+
+  <div class="result-area" id="result-area">
+    <h2 id="result"></h2>
+    <p id="player-pick"></p>
+    <p id="computer-pick"></p>
+    <button class="play-again" onclick="restart()">PLAY AGAIN</button>
+  </div>
+
+  <button class="rules-btn" onclick="openModal()">RULES</button>
+
+  <!-- Modal -->
+  <div class="modal" id="rules-modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal()">&times;</span>
+      <img src="images/image-rules.svg" alt="Rules">
+    </div>
+  </div>
+
+  <script>
+    let score = 0;
+
+    function play(playerChoice) {
+      const choices = ['rock', 'paper', 'scissors'];
+      const computerChoice = choices[Math.floor(Math.random() * 3)];
+      const resultText = document.getElementById('result');
+
+      if (playerChoice === computerChoice) {
+        resultText.textContent = "DRAW";
+      } else if (
+        (playerChoice === 'rock' && computerChoice === 'scissors') ||
+        (playerChoice === 'paper' && computerChoice === 'rock') ||
+        (playerChoice === 'scissors' && computerChoice === 'paper')
+      ) {
+        resultText.textContent = "YOU WIN";
+        score++;
+      } else {
+        resultText.textContent = "YOU LOSE";
+        if (score > 0) score--;
+      }
+
+      document.getElementById('score').textContent = score;
+      document.getElementById('game-area').style.display = 'none';
+      document.getElementById('result-area').style.display = 'flex';
+      document.getElementById('player-pick').textContent = `You picked: ${playerChoice}`;
+      document.getElementById('computer-pick').textContent = `Computer picked: ${computerChoice}`;
+    }
+
+    function restart() {
+      document.getElementById('game-area').style.display = 'block';
+      document.getElementById('result-area').style.display = 'none';
+    }
+
+    function openModal() {
+      document.getElementById('rules-modal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('rules-modal').style.display = 'none';
+    }
+  </script>
+
+</body>
+</html>
